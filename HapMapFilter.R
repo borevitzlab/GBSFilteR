@@ -3,10 +3,10 @@ setwd("./pel2b")
 
 
 ### Set Cutoffs
-snp.cutoff = 78 # SNP must be present in this many samples 78
-sample.cutoff = 500 # Sample must have data on at least this many SNPS 500
-paralog.cutoff = 35 # If snps have more than this many heterozygotes 35
-
+#This is at the start of the file to make it easy to adjust them
+snp.cutoff = 78 # SNP must be present in this many samples (78)
+sample.cutoff = 500 # Sample must have data on at least this many SNPS (500)
+paralog.cutoff = 35 # If snps have more than this many heterozygotes (35)
 
 
 ### Import data
@@ -16,13 +16,14 @@ geno <- read.table("Pel2b.hmn.txt",header=T,na.strings=".")
 # Gives a <num.samples> X <num.snps> data frame, 96 x 19507 in the case of pel2b
 g <- geno[,-(1:11)] 
 
+
 ### Image raw data
 # Save (to png device)
-tiff(file="raw.tiff", antialias="none")
-# Create colour map of genotype matrix
-# White cells are missing data
+png(file="raw.png", antialias="none")
+# Create colour map of genotype matrix, White cells are missing data
 image(as.matrix(g), main="Raw Data (pel2b)", col=rainbow(3))
 dev.off() 
+
 
 ### Filter data
 # For each row (SNP) in the genotype, count how many samples have data on this snp
@@ -39,11 +40,15 @@ hist(snp.sample.counts,breaks=96)
 abline(v=snp.cutoff)
 dev.off()
 
-# How many SNPs are present after filtering (= TRUE)
+# How many SNP sites are present after filtering (= TRUE)
 table(snp.sample.counts > snp.cutoff)
 
-# Transfer useful SNPs to new data frame
+# Transfer useful SNP sites to new data frame
 g.snp <- g[snp.sample.counts > snp.cutoff,]
+
+png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "data_post_SNP_filt.png"))
+image(as.matrix(g.snp), col=rainbow(3), main="After SNP filtering")
+dev.off()
 
 
 
@@ -62,16 +67,16 @@ dev.off()
 table(sample.snp.counts > sample.cutoff)
 gg <- g.snp[,sample.snp.counts > sample.cutoff] #select top 80 samples
 
+
 # How much data is still missing?
 table(!is.na(gg))
 image(as.matrix(gg), col=rainbow(3))
-png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "data_post_filtering.png"))
+png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "data_post_Sample_filt.png"))
 image(as.matrix(gg), col=rainbow(3))
 dev.off()
 
 
-
-### Calculate major and minor allele encodings, and filter paralogs
+### Calculate major and minor allele encodings
 freq <- rowSums(gg, na.rm=T)
 tot <- rowSums(!is.na(gg))
 # How many samples have major allele encoded as 2?
@@ -89,14 +94,18 @@ g.minor[freq < tot,] <- gg[freq < tot,]
 min.allele.freq <- rowSums(g.minor, na.rm=T) / (rowSums(!is.na(g.minor)) *2)
 hist(min.allele.freq, breaks=20)
 
+# Image data after allele correction
+png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "data_post_allele_correction.png"))
+image(as.matrix(g.minor), col=rainbow(3), main="Data after allele correction")
+dev.off()
 
 
 ### Filter for paralogs
 # Excessive heterozygosity across many samples indicates probable paralogs
+# Inspect this visually
 image(g.minor==1, col=rainbow(3))
 
-## Filter samples for excessive hets
-#across samples
+## Filter for excessive hets across samples
 hets.per.sample <- colSums(g.minor==1,na.rm=T)
 hist(hets.per.sample, breaks=25)
 
@@ -117,11 +126,14 @@ hist(final.min.allele.freq, breaks=20)
 
 # How much data is still missing?
 table(!is.na(g.final))
-image(as.matrix(g.final), col=rainbow(3))
+# Image this
 png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "final_data.png"))
-image(as.matrix(g.final), col=rainbow(3))
+image(
+  as.matrix(g.final), 
+  sub=paste("sample_cutoff=", sample.cutoff, "snp_cutoff=", snp.cutoff), 
+  col=rainbow(3)
+  )
 dev.off()
-
 
 
 ### Create name matrix. Do it down here, so we can apply this to the phylogenetic grouping
@@ -134,7 +146,6 @@ names.lst <- unlist(split.names)
 # Create names matrix. nrow splits list into matrix with 5 rows
 names.matrix <- matrix(names.lst, nrow=5)
 names <- names.matrix[5,]
-
 
 
 ### Edits name matrix
@@ -209,6 +220,7 @@ dev.off()
 ### Export final filtered data.
 write.csv(g.final,file = paste(sample.cutoff, snp.cutoff, paralog.cutoff, "pel2b_FilteredGenotypes.csv"))
 
+
 ### Export data to gps file
 # Creates a data.frame of each sample
 # Points are coloured based on cutree phylogenetic groups
@@ -222,6 +234,9 @@ gps.file <- data.frame(
 
 # Write gps data frame to csv
 write.csv(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "pel2b_GPS.csv"), gps.file)
-dat <- as.numeric(table(!is.na(g.final)))
-table(!is.na(g))
-print(paste("Final data matrix has", dat[1], "pieces of missing data, and", dat[2], "pieces of data present"))
+
+### Print final summary
+final.dim <- dim(g.final)
+final.dat <- as.numeric(table(!is.na(g.final)))
+print(paste("Final data matrix has", final.dim[1], "SNP sites in", final.dim[2], "samples"))
+print(paste("Final data matrix has", final.dat[1], "pieces of missing data, and", final.dat[2], "pieces of data present"))
