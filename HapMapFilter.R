@@ -19,7 +19,7 @@ wells <- gsub("([[:upper:]])0([[:digit:]])", replacement="\\1\\2", names.mat[5,]
 plate.num <- names.matw[3,]
 
 #lets test this in github
-## more testingd...dfsdf
+## more testingd...dfsdft5yrt
 
 
 #plot(read counts, snp counts) to look at correlation
