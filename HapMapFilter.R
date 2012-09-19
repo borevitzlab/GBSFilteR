@@ -19,7 +19,7 @@ wells <- gsub("([[:upper:]])0([[:digit:]])", replacement="\\1\\2", names.mat[5,]
 plate.num <- names.matw[3,]
 
 #lets test this in github
-## more testingd...dfsdft5yrt
+## more testingd...dfsdft5yrtdfsfd
 
 
 #plot(read counts, snp counts) to look at correlation
@@ -192,10 +192,10 @@ snp.euc.dist <- dist(t(g.minor))
 ## operational
 boot.euc.dist <- list()
 njboot <- list()
-bootstraps <- matrix(nrow = 159,ncol=100)
+bootstraps <- matrix(nrow = 157,ncol=100)
 for (i in 1:100){
-boot.euc.dist[[i]] <- dist(t(g.nohet[sample(1:nrow(g.nohet),replace=T),]))
-njboot[[i]] <- NJ(boot.euc.dist[[i]])
+boot.euc.dist[[i]] <- dist(t(g.minor[sample(1:nrow(g.minor),replace=T),]))
+njboot[[i]] <- nj(boot.euc.dist[[i]])
 bootstraps[,i] <- mergeTrees(njeu, njboot[[i]], TRUE)
 }
 bootstrap <- rowSums(bootstraps =="")
@@ -204,10 +204,10 @@ bootstrap <- rowSums(bootstraps =="")
 #plot(snp.bin.dist,snp.cor.dist)
 #hcor <- hclust(snp.cor.dist)
 #hbin <- hclust(snp.bin.dist)
-#njcor <- NJ(snp.cor.dist)
-#njbin <- NJ(snp.bin.dist)
-njeu <- NJ(snp.euc.dist)
-#njboot <- NJ(boot.euc.dist)
+#njcor <- nj(snp.cor.dist)
+#njbin <- nj(snp.bin.dist)
+njeu <- nj(snp.euc.dist)
+#njboot <- nj(boot.euc.dist)
 
 # better to polarize by ancetral state and use full freq specta
 pdf(file = "allele.freq618.81.pdf")
@@ -221,8 +221,8 @@ plot(njbin, main = "NJ bin dist",cex=0.5)
 bootstraps <- mergeTrees(njeu, njboot, TRUE)
 
 pdf("bootstrap.peli.pdf")
-plot(njeu,cex=0.4)
-edgelabels(bootstrap, frame="none", adj=c(0.5, 0),cex=0.4)
+plot(njeu)
+edgelabels(bootstrap, frame="none", adj=c(0.5, 0))
 dev.off()
 write.csv(g.minor,file = "pel2bgeno-paralog.csv")
 
