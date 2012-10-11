@@ -1,4 +1,5 @@
 #change working directory
+<<<<<<< HEAD
 setwd("./pel2b")
 
 
@@ -8,6 +9,12 @@ snp.cutoff = 78 # SNP must be present in this many samples (78)
 sample.cutoff = 500 # Sample must have data on at least this many SNPS (500)
 paralog.cutoff = 35 # If snps have more than this many heterozygotes (35)
 
+=======
+#setwd("Downloads/hapmap2n3")
+
+# read in numberic raw file
+geno <- read.table("HapMap.hmn.txt",header=T,na.strings=".")
+>>>>>>> 9b8921311007f93a1d7226320a0a82421f064b90
 
 ### Import data
 # Read TASSEL output which contains SNP data
@@ -15,6 +22,7 @@ geno <- read.table("Pel2b.hmn.txt",header=T,na.strings=".")
 # strip sample info by discarding columns 1-11
 # Gives a <num.samples> X <num.snps> data frame, 96 x 19507 in the case of pel2b
 g <- geno[,-(1:11)] 
+<<<<<<< HEAD
 
 
 ### Image raw data
@@ -240,3 +248,66 @@ final.dim <- dim(g.final)
 final.dat <- as.numeric(table(!is.na(g.final)))
 print(paste("Final data matrix has", final.dim[1], "SNP sites in", final.dim[2], "samples"))
 print(paste("Final data matrix has", final.dat[1], "pieces of missing data, and", final.dat[2], "pieces of data present"))
+=======
+#image raw data
+jpeg(file="raw.jpg")
+image(as.matrix(g),main = dim(g))
+dev.off()
+
+#format names for data sheet matching
+names.mat <- matrix(unlist(strsplit(names(g),split="_")),nrow=5)
+# well and plate id in names.mat
+names(g) <- names.mat[1,]
+
+# identify the number of genotypes called per sample
+sites <- apply(g,1, function(x) sum(!is.na(x)));
+hist(sites,breaks=96)
+snp.threshold <- 30 ## this depends on sample layout and quality
+hist(sites[sites > snp.threshold],breaks= (96-snp.threshold))
+g.snp <- g[sites > snp.threshold,]
+
+# drop bad samples with few markers
+samples<-apply(g.snp,2,function(x) sum(!is.na(x)))
+hist(samples,breaks = 100)
+
+samp.thresh <- 400 # this matters depending on the diversity among samples
+table(samples < samp.thresh)
+gg <- g.snp[,samples > samp.thresh] #select top 80 samples
+# how many total calls?
+table(!is.na(g))
+#  FALSE    TRUE 
+#5195135  474817 
+table(!is.na(gg))
+# FALSE   TRUE 
+#139363 292241 
+image(as.matrix(gg))
+
+# paralogs?
+image(gg==1)
+snp.het.count <- rowSums(gg==1,na.rm=T)
+#frequency distribution across samples
+hist(snp.het.count, breaks = ncol(gg))
+#threshold
+paralog.thresh <- 100 # depends on repetitivness 
+table(snp.het.count > paralog.thresh)
+g.minor <- gg[snp.het.count > paralog.thres,]
+write.csv(g.minor,file = "geno-paralog.csv")
+
+snp.cor.dist <- as.dist(1-cor(g.minor,use = "pairwise.complete.obs"))
+tree <- upgma(snp.cor.dist)
+pdf("tree.pdf")
+plot(tree)
+bs <- list()
+for (i in 1:100){
+            bs.mark <- sample(nrow(g.minor),replace=T)
+	snp.cor.bs <- as.dist(1-cor(g.minor[bs.mark,],use = "pairwise.complete.obs"))
+bs[[i]] <- upgma(snp.cor.bs)
+cat(i)
+}
+install.packages("phangorn",repos = "http://cran.csiro.au/")
+library(phangorn)
+bstree <- plotBS(tree, bs)
+dev.off()
+write.nexus(bstree, file = "boot.nex")
+
+>>>>>>> 9b8921311007f93a1d7226320a0a82421f064b90
