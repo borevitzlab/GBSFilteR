@@ -1,7 +1,10 @@
 #change working directory
-<<<<<<< HEAD
-setwd("./pel2b")
+args <- commandArgs(trailingOnly=T)
+#1: hmnfas file (hmn file with tag sequences)
+#2: output file prefix
 
+args[1] = "pel2b_crosscheck.hmnfas.csv"
+args[2] <- "pel2b_crosscheck"
 
 ### Set Cutoffs
 #This is at the start of the file to make it easy to adjust them
@@ -9,25 +12,19 @@ snp.cutoff = 78 # SNP must be present in this many samples (78)
 sample.cutoff = 500 # Sample must have data on at least this many SNPS (500)
 paralog.cutoff = 35 # If snps have more than this many heterozygotes (35)
 
-=======
-#setwd("Downloads/hapmap2n3")
-
-# read in numberic raw file
-geno <- read.table("HapMap.hmn.txt",header=T,na.strings=".")
->>>>>>> 9b8921311007f93a1d7226320a0a82421f064b90
-
 ### Import data
 # Read TASSEL output which contains SNP data
-geno <- read.table("Pel2b.hmn.txt",header=T,na.strings=".")
-# strip sample info by discarding columns 1-11
-# Gives a <num.samples> X <num.snps> data frame, 96 x 19507 in the case of pel2b
-g <- geno[,-(1:11)] 
-<<<<<<< HEAD
+geno <- read.csv(args[1],header=T,na.strings=".")
+# strip sample info by discarding columns 1-12
+# Gives a <num.samples> X <num.snps> data frame
+g <- geno[,-(1:12)] 
+# Save tag seqs in a vector
+g.seqtags <- as.character(geno[,2])
 
 
 ### Image raw data
 # Save (to png device)
-png(file="raw.png", antialias="none")
+png(file=paste(args[2],"raw.png",sep="."))
 # Create colour map of genotype matrix, White cells are missing data
 image(as.matrix(g), main="Raw Data (pel2b)", col=rainbow(3))
 dev.off() 
@@ -43,7 +40,7 @@ hist(snp.sample.counts,breaks=96)
 abline(v=snp.cutoff)
 
 # Save histogram which describes the cutoff point used
-png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "snp_filtering_hist.png"))
+png(file=paste(args[2], "snp_filtering_hist.png", sep="."))
 hist(snp.sample.counts,breaks=96)
 abline(v=snp.cutoff)
 dev.off()
@@ -54,7 +51,7 @@ table(snp.sample.counts > snp.cutoff)
 # Transfer useful SNP sites to new data frame
 g.snp <- g[snp.sample.counts > snp.cutoff,]
 
-png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "data_post_SNP_filt.png"))
+png(file=paste(args[2], "data_post_SNP_filt.png", sep="."))
 image(as.matrix(g.snp), col=rainbow(3), main="After SNP filtering")
 dev.off()
 
@@ -67,7 +64,7 @@ sample.snp.counts<-apply(g.snp,2,function(x) sum(!is.na(x)))
 hist(sample.snp.counts, breaks=40, xlim=c(0,600))
 abline(v=sample.cutoff)
 
-png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "sample_filtering_hist.png"))
+png(file=paste(args[2], "sample_filtering_hist.png", sep="."))
 hist(sample.snp.counts, breaks=40, xlim=c(0,600))
 abline(v=sample.cutoff)
 dev.off()
@@ -79,7 +76,7 @@ gg <- g.snp[,sample.snp.counts > sample.cutoff] #select top 80 samples
 # How much data is still missing?
 table(!is.na(gg))
 image(as.matrix(gg), col=rainbow(3))
-png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "data_post_Sample_filt.png"))
+png(file=paste(args[2], "data_post_Sample_filt.png", sep="."))
 image(as.matrix(gg), col=rainbow(3))
 dev.off()
 
@@ -103,7 +100,7 @@ min.allele.freq <- rowSums(g.minor, na.rm=T) / (rowSums(!is.na(g.minor)) *2)
 hist(min.allele.freq, breaks=20)
 
 # Image data after allele correction
-png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "data_post_allele_correction.png"))
+png(file=paste(args[2], "data_post_allele_correction.png", sep="."))
 image(as.matrix(g.minor), col=rainbow(3), main="Data after allele correction")
 dev.off()
 
@@ -135,7 +132,7 @@ hist(final.min.allele.freq, breaks=20)
 # How much data is still missing?
 table(!is.na(g.final))
 # Image this
-png(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "final_data.png"))
+png(file=paste(args[2], "final_data.png", sep="."))
 image(
   as.matrix(g.final), 
   sub=paste("sample_cutoff=", sample.cutoff, "snp_cutoff=", snp.cutoff), 
@@ -197,7 +194,7 @@ plot.col <- rainbow(max(as.numeric(tree.groups)))[as.numeric(tree.groups)]
 
 
 ### EXPORT FIGURES
-pdf(file = paste(sample.cutoff, snp.cutoff, paralog.cutoff, "filtered.pel2b.pdf"))
+pdf(file=paste(args[2], "results.pdf", sep="."))
 # Minor Allele Frequency histogram of final data
 hist(final.min.allele.freq,breaks=50, main="Minor Allele Frequencies")
 # Genotype call image of final data
@@ -226,7 +223,9 @@ dev.off()
 
 
 ### Export final filtered data.
-write.csv(g.final,file = paste(sample.cutoff, snp.cutoff, paralog.cutoff, "pel2b_FilteredGenotypes.csv"))
+g.output <- g.final
+g.output$tagseqs <- g.seqtags[as.numeric(row.names(g.output))]
+write.csv(g.output,file = paste(args[2],"filtered.csv", sep="."))
 
 
 ### Export data to gps file
@@ -234,80 +233,99 @@ write.csv(g.final,file = paste(sample.cutoff, snp.cutoff, paralog.cutoff, "pel2b
 # Points are coloured based on cutree phylogenetic groups
 # Only samples which passed filtering are used
 gps.file <- data.frame(
-  Names=names(g.final),
+  Names=names(g.output),
   color=plot.col,
   Lat=names.matrix[8,],
   Long=names.matrix[9,]
   )
 
 # Write gps data frame to csv
-write.csv(file=paste(sample.cutoff, snp.cutoff, paralog.cutoff, "pel2b_GPS.csv"), gps.file)
+write.csv(gps.file,file = paste(args[2],"gps.csv", sep="."))
 
 ### Print final summary
 final.dim <- dim(g.final)
 final.dat <- as.numeric(table(!is.na(g.final)))
 print(paste("Final data matrix has", final.dim[1], "SNP sites in", final.dim[2], "samples"))
 print(paste("Final data matrix has", final.dat[1], "pieces of missing data, and", final.dat[2], "pieces of data present"))
-=======
-#image raw data
-jpeg(file="raw.jpg")
-image(as.matrix(g),main = dim(g))
-dev.off()
 
-#format names for data sheet matching
-names.mat <- matrix(unlist(strsplit(names(g),split="_")),nrow=5)
-# well and plate id in names.mat
-names(g) <- names.mat[1,]
 
-# identify the number of genotypes called per sample
-sites <- apply(g,1, function(x) sum(!is.na(x)));
-hist(sites,breaks=96)
-snp.threshold <- 30 ## this depends on sample layout and quality
-hist(sites[sites > snp.threshold],breaks= (96-snp.threshold))
-g.snp <- g[sites > snp.threshold,]
 
-# drop bad samples with few markers
-samples<-apply(g.snp,2,function(x) sum(!is.na(x)))
-hist(samples,breaks = 100)
 
-samp.thresh <- 400 # this matters depending on the diversity among samples
-table(samples < samp.thresh)
-gg <- g.snp[,samples > samp.thresh] #select top 80 samples
-# how many total calls?
-table(!is.na(g))
-#  FALSE    TRUE 
-#5195135  474817 
-table(!is.na(gg))
-# FALSE   TRUE 
-#139363 292241 
-image(as.matrix(gg))
 
-# paralogs?
-image(gg==1)
-snp.het.count <- rowSums(gg==1,na.rm=T)
-#frequency distribution across samples
-hist(snp.het.count, breaks = ncol(gg))
-#threshold
-paralog.thresh <- 100 # depends on repetitivness 
-table(snp.het.count > paralog.thresh)
-g.minor <- gg[snp.het.count > paralog.thres,]
-write.csv(g.minor,file = "geno-paralog.csv")
 
-snp.cor.dist <- as.dist(1-cor(g.minor,use = "pairwise.complete.obs"))
-tree <- upgma(snp.cor.dist)
-pdf("tree.pdf")
-plot(tree)
-bs <- list()
-for (i in 1:100){
-            bs.mark <- sample(nrow(g.minor),replace=T)
-	snp.cor.bs <- as.dist(1-cor(g.minor[bs.mark,],use = "pairwise.complete.obs"))
-bs[[i]] <- upgma(snp.cor.bs)
-cat(i)
-}
-install.packages("phangorn",repos = "http://cran.csiro.au/")
-library(phangorn)
-bstree <- plotBS(tree, bs)
-dev.off()
-write.nexus(bstree, file = "boot.nex")
 
->>>>>>> 9b8921311007f93a1d7226320a0a82421f064b90
+
+
+
+
+
+
+
+
+
+# #####justins stuff below here
+# 
+# 
+# #image raw data
+# jpeg(file="raw.jpg")
+# image(as.matrix(g),main = dim(g))
+# dev.off()
+# 
+# #format names for data sheet matching
+# names.mat <- matrix(unlist(strsplit(names(g),split="_")),nrow=5)
+# # well and plate id in names.mat
+# names(g) <- names.mat[1,]
+# 
+# # identify the number of genotypes called per sample
+# sites <- apply(g,1, function(x) sum(!is.na(x)));
+# hist(sites,breaks=96)
+# snp.threshold <- 30 ## this depends on sample layout and quality
+# hist(sites[sites > snp.threshold],breaks= (96-snp.threshold))
+# g.snp <- g[sites > snp.threshold,]
+# 
+# # drop bad samples with few markers
+# samples<-apply(g.snp,2,function(x) sum(!is.na(x)))
+# hist(samples,breaks = 100)
+# 
+# samp.thresh <- 400 # this matters depending on the diversity among samples
+# table(samples < samp.thresh)
+# gg <- g.snp[,samples > samp.thresh] #select top 80 samples
+# # how many total calls?
+# table(!is.na(g))
+# #  FALSE    TRUE 
+# #5195135  474817 
+# table(!is.na(gg))
+# # FALSE   TRUE 
+# #139363 292241 
+# image(as.matrix(gg))
+# 
+# # paralogs?
+# image(gg==1)
+# snp.het.count <- rowSums(gg==1,na.rm=T)
+# #frequency distribution across samples
+# hist(snp.het.count, breaks = ncol(gg))
+# #threshold
+# paralog.thresh <- 100 # depends on repetitivness 
+# table(snp.het.count > paralog.thresh)
+# g.minor <- gg[snp.het.count > paralog.thres,]
+# write.csv(g.minor,file = "geno-paralog.csv")
+
+
+# snp.cor.dist <- as.dist(1-cor(g.minor,use = "pairwise.complete.obs"))
+# tree <- upgma(snp.cor.dist)
+# pdf("tree.pdf")
+# plot(tree)
+# bs <- list()
+# for (i in 1:100){
+#             bs.mark <- sample(nrow(g.minor),replace=T)
+# 	snp.cor.bs <- as.dist(1-cor(g.minor[bs.mark,],use = "pairwise.complete.obs"))
+# bs[[i]] <- upgma(snp.cor.bs)
+# cat(i)
+# }
+# install.packages("phangorn",repos = "http://cran.csiro.au/")
+# library(phangorn)
+# bstree <- plotBS(tree, bs)
+# dev.off()
+# write.nexus(bstree, file = "boot.nex")
+# 
+# >>>>>>> 9b8921311007f93a1d7226320a0a82421f064b90
