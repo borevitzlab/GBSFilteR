@@ -4,6 +4,7 @@ args <- commandArgs(trailingOnly=T)
 #2: output file prefix
 
 args[1] = "pel2b_crosscheck.hmnfas.csv"
+args[2] = "PeliSampleData - SpecimenWell.csv"
 args[3] = "pel2b_crosscheck"
 
 ### Set Cutoffs
@@ -132,7 +133,8 @@ g.final <- g.minor[!paralogous.snps,]
 
 # minor allele frequency distribution
 final.min.allele.freq <- rowSums(g.final,na.rm=T)/ (2 * rowSums(!is.na(g.final)))
-hist(final.min.allele.freq, breaks=20)
+#DISABLED TO ALLOW SCRIPTING
+# hist(final.min.allele.freq, breaks=20)
 
 # How much data is still missing?
 table(!is.na(g.final))
@@ -165,42 +167,52 @@ wells <- gsub("([[:upper:]])0([[:digit:]])", replacement="\\1\\2", names.matrix[
 plate.num <- names.matrix[3,]
 
 # Import detailed sample data
-pel.names <- read.csv(args[2])
+samples.names <- read.csv(args[2])
 
-# not all samples in pel.names were run through sequecing
-# this gets the subset of pel.names which were run
+# not all samples in samples.names were run through sequecing
+# this gets the subset of samples.names which were run
 index <- match(
   paste(plate.num, wells),
-  paste(pel.names$Plate.Number,pel.names$Well.Number)
+  paste(samples.names$Plate.Number,samples.names$Well.Number)
 )
 
 # build names table with extra information
 names.matrix <- rbind(
   names.matrix,
-  as.character(pel.names$Well.Number[index]),
-  as.character(pel.names$Locality[index]),
-  as.numeric(pel.names$Lat[index]),
-  as.numeric(pel.names$Long[index]),
-  as.character(pel.names$EntityCode[index]),
-  as.character(pel.names$State[index])
+  as.character(samples.names$Well.Number[index]),
+  as.character(samples.names$Locality[index]),
+  as.numeric(samples.names$Lat[index]),
+  as.numeric(samples.names$Long[index]),
+  as.character(samples.names$EntityCode[index]),
+  as.character(samples.names$State[index])
 )
 
 # Rename samples to "<entity.code> <collection.location> <collection.state>"
 names(g.final) <- paste(names.matrix[10,],names.matrix[7,],names.matrix[11,])
 
 
-### Make tree, define colour groups
-tree <- hclust(as.dist(1-cor(g.final,use = "pairwise.complete.obs")))
-tree.groups <- cutree(tree, k=5)
-
-# Assigns each phylogenetic group a colour
-plot.col <- rainbow(max(as.numeric(tree.groups)))[as.numeric(tree.groups)]
-
-
 ### Export final filtered data.
 g.output <- g.final
 g.output$tagseqs <- g.seqtags[as.numeric(row.names(g.output))]
 write.csv(g.output,file = paste(args[3],"filtered.csv", sep="."))
+
+
+# Minor Allele Frequency histogram of final data
+png(file=paste(args[3], "minor.allel.freqs.png", sep="."))
+hist(final.min.allele.freq,breaks=50, main="Minor Allele Frequencies")
+dev.off()
+
+# Genotype call image of final data
+png(file=paste(args[3], "final_data.png", sep="."))
+image(
+  as.matrix(genotype), 
+  main="Genotype Call Data", 
+  sub=paste("sample_cutoff=", sample.cutoff, "snp_cutoff=", snp.cutoff),
+  col=rainbow(3), 
+  ylab="Samples", 
+  xlab="SNPs"
+)
+dev.off()
 
 
 ### Export data to gps file
