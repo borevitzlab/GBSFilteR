@@ -1,7 +1,9 @@
 library(seqinr)
 
 args <- commandArgs(trailingOnly=T)
-fasta <- read.fasta("HapMap.fas.txt", as.string=T, seqonly=F, forceDNAtolower=F)
+args[1] <- "pel2b_crosscheck.fas.txt"
+args[2] <- "pel2b_crosscheck.fas.csv"
+fasta <- read.fasta(args[1], as.string=T, seqonly=F, forceDNAtolower=F)
 
 seq.names.raw <- as.character(matrix(unlist(names(fasta))))
 seq.names.raw <- seq.names.raw[seq(1,length(seq.names.raw),2)]
@@ -13,5 +15,5 @@ seqs <- seqs[seq(1,length(seqs),2)]
 
 table <- data.frame(seq.names=seq.names, seqs=seqs)
 
-write.csv(table, file="HapMap.fas.csv")
+write.csv(table, file=args[2])
 
