@@ -4,7 +4,8 @@ args <- commandArgs(trailingOnly=T)
 #2: output file prefix
 
 args[1] = "pel2b_crosscheck.filtered.csv"
-args[2] = "pel2b_crosscheck"
+args[2] = "pel2b_crosscheck.phylogroups.csv"
+args[3] = "pel2b_crosscheck"
 
 
 # Read genotype data created tassel_filter_hapmap.R
@@ -14,8 +15,10 @@ row.names(genotype) <- genotype.seqs$X # restore row names
 
 
 ### Make tree, define colour groups
-tree <- hclust(as.dist(1-cor(genotype,use = "pairwise.complete.obs")))
-tree.groups <- cutree(tree, k=5)
+tree.groups.tab <- read.csv(args[2])
+tree.groups <- as.numeric(tree.groups.tab[,2])
+names(tree.groups) <- as.character(tree.groups.tab[,1])
+
 
 # Assigns each phylogenetic group a colour
 plot.col <- rainbow(max(as.numeric(tree.groups)))[as.numeric(tree.groups)]
@@ -26,7 +29,7 @@ plot.col <- rainbow(max(as.numeric(tree.groups)))[as.numeric(tree.groups)]
 # Points are coloured based on cutree phylogenetic groups
 # Only samples which passed filtering are used
 gps.file <- data.frame(
-  Names=names(g.output),
+  Names=names(genotype),
   color=plot.col,
   Lat=names.matrix[8,],
   Long=names.matrix[9,]
