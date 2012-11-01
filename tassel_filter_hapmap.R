@@ -161,6 +161,8 @@ names.lst <- unlist(split.names)
 names.matrix <- matrix(names.lst, nrow=5)
 names <- names.matrix[5,]
 
+# write names matrix
+write.csv(names.matrix,file=paste(args[3],"names.csv", sep="."))
 
 ### Edits name matrix
 # Substitute "A01" to "A1". "\\1" is a regex backreference to the first subexpression in parenthesis.
