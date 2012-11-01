@@ -21,7 +21,7 @@ names(tree.groups) <- as.character(tree.groups.tab[,1])
 plot.col <- rainbow(max(as.numeric(tree.groups)))[as.numeric(tree.groups)]
 
 ### Get names data
-names <- as.matrix(read.csv(args[3]))
+names.matrix <- as.matrix(read.csv(args[3]))
 
 ### Export data to gps file
 # Creates a data.frame of each sample
