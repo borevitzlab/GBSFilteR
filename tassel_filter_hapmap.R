@@ -1,11 +1,8 @@
 #change working directory
 args <- commandArgs(trailingOnly=T)
-#1: hmnfas file (hmn file with tag sequences)
-#2: output file prefix
-
-args[1] = "pel2b_crosscheck.hmnfas.csv"
-args[2] = "PeliSampleData - SpecimenWell.csv"
-args[3] = "pel2b_crosscheck"
+# args[1] = "pel2b_crosscheck.hmnfas.csv"
+# args[2] = "PeliSampleData - SpecimenWell.csv"
+# args[3] = "pel2b_crosscheck"
 
 ### Set Cutoffs
 #This is at the start of the file to make it easy to adjust them
@@ -103,7 +100,8 @@ g.minor[freq < tot,] <- gg[freq < tot,]
 
 # Compute minor allele frequencies
 min.allele.freq <- rowSums(g.minor, na.rm=T) / (rowSums(!is.na(g.minor)) *2)
-hist(min.allele.freq, breaks=20)
+#DISABLED TO ALLOW SCRITPING ON CLUSTER
+# hist(min.allele.freq, breaks=20)
 
 # Image data after allele correction
 png(file=paste(args[3], "data_post_allele_correction.png", sep="."))
@@ -235,3 +233,4 @@ final.dim <- dim(g.final)
 final.dat <- as.numeric(table(!is.na(g.final)))
 print(paste("Final data matrix has", final.dim[1], "SNP sites in", final.dim[2], "samples"))
 print(paste("Final data matrix has", final.dat[1], "pieces of missing data, and", final.dat[2], "pieces of data present"))
+

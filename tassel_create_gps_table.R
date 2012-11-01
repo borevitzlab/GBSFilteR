@@ -1,11 +1,8 @@
 #change working directory
 args <- commandArgs(trailingOnly=T)
-#1: hmnfas file (hmn file with tag sequences)
-#2: output file prefix
-
-args[1] = "pel2b_crosscheck.filtered.csv"
-args[2] = "pel2b_crosscheck.phylogroups.csv"
-args[3] = "pel2b_crosscheck"
+# args[1] = "pel2b_crosscheck.filtered.csv"
+# args[2] = "pel2b_crosscheck.phylogroups.csv"
+# args[3] = "pel2b_crosscheck"
 
 
 # Read genotype data created tassel_filter_hapmap.R

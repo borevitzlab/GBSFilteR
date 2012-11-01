@@ -1,8 +1,8 @@
 library(seqinr)
 
 args <- commandArgs(trailingOnly=T)
-args[1] <- "pel2b_crosscheck.fas.txt"
-args[2] <- "pel2b_crosscheck"
+# args[1] <- "pel2b_crosscheck.fas.txt"
+# args[2] <- "pel2b_crosscheck"
 
 # Read data
 fasta <- read.fasta(args[1], as.string=T, seqonly=F, forceDNAtolower=F)

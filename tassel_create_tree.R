@@ -1,7 +1,7 @@
 #change working directory
 args <- commandArgs(trailingOnly=T)
-args[1] = "pel2b_crosscheck.filtered.csv"
-args[2] = "pel2b_crosscheck"
+# args[1] = "pel2b_crosscheck.filtered.csv"
+# args[2] = "pel2b_crosscheck"
 
 ### READ DATA
 # Read genotype data created tassel_filter_hapmap.R
