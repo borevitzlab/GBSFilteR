@@ -161,9 +161,6 @@ names.lst <- unlist(split.names)
 names.matrix <- matrix(names.lst, nrow=5)
 names <- names.matrix[5,]
 
-# write names matrix
-write.csv(names.matrix,file=paste(args[3],"names.csv", sep="."))
-
 ### Edits name matrix
 # Substitute "A01" to "A1". "\\1" is a regex backreference to the first subexpression in parenthesis.
 wells <- gsub("([[:upper:]])0([[:digit:]])", replacement="\\1\\2", names.matrix[5,])
@@ -192,6 +189,9 @@ names.matrix <- rbind(
 
 # Rename samples to "<entity.code> <collection.location> <collection.state>"
 names(g.final) <- paste(names.matrix[10,],names.matrix[7,],names.matrix[11,])
+
+# write names matrix
+write.csv(names.matrix,file=paste(args[3],"names.csv", sep="."))
 
 
 ### Export final filtered data.
