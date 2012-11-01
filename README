@@ -10,4 +10,4 @@ tassel_filter_hapmap.R --args <prefix.hmnfas.csv> <sample.name.csv> <prefix> -> 
 tassel_create_tree.R --args <prefix.filtered.csv> <prefix> -> <prefix.phylogroups.csv> + tree graphics
 tassel_create_gps_table.R --args <prefix.filtered.csv> <prefix.phylogroups.csv> <prefix> -> <prefix.gps.csv>
 
-tassel_crosscheck_samples.R --args <prefix.filtered.csv> <prefix>
+crosscheck_samples.R --args <prefix.filtered.csv> <prefix>
