@@ -112,18 +112,21 @@ dev.off()
 ### Filter for paralogs
 # Excessive heterozygosity across many samples indicates probable paralogs
 # Inspect this visually
-image(g.minor==1, col=rainbow(3), main="Heterozygous Data (Checking for Paralogs)")
+#DISABLED FOR SCRIPTING
+# image(g.minor==1, col=rainbow(3), main="Heterozygous Data (Checking for Paralogs)")
 
 ## Filter for excessive hets across samples
 hets.per.sample <- colSums(g.minor==1,na.rm=T)
-hist(hets.per.sample, breaks=25)
+#DISABLED FOR SCRIPTING
+# hist(hets.per.sample, breaks=25)
 
 #threshold for too many 'het' calls in some samples??
 which(hets.per.sample> 200)
 
 ## Filter snps for excessive heterozygosity
 hets.per.snp <- rowSums(g.minor==1, na.rm=T)
-hist(hets.per.snp, breaks=20)
+#DISABLED FOR SCRIPTING
+# hist(hets.per.snp, breaks=20)
 
 # filter out paralogs
 paralogous.snps <- hets.per.snp > paralog.cutoff
@@ -203,7 +206,7 @@ dev.off()
 # Genotype call image of final data
 png(file=paste(args[3], "final_data.png", sep="."))
 image(
-  as.matrix(genotype), 
+  as.matrix(g.final), 
   main="Genotype Call Data", 
   sub=paste("sample_cutoff=", sample.cutoff, "snp_cutoff=", snp.cutoff),
   col=rainbow(3), 
@@ -211,21 +214,6 @@ image(
   xlab="SNPs"
 )
 dev.off()
-
-
-### Export data to gps file
-# Creates a data.frame of each sample
-# Points are coloured based on cutree phylogenetic groups
-# Only samples which passed filtering are used
-gps.file <- data.frame(
-  Names=names(g.output),
-  color=plot.col,
-  Lat=names.matrix[8,],
-  Long=names.matrix[9,]
-)
-
-# Write gps data frame to csv
-write.csv(gps.file,file = paste(args[3],"gps.csv", sep="."))
 
 
 ### Print final summary
