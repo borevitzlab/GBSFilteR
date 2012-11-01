@@ -8,6 +8,6 @@ tassel_fasta_to_csv.R --args <tassel.fas.txt> <prefix>  -> <prefix.fas.csv>
 tassel_hmn_to_tagseq.R --args <tassel.hmn.txt> <prefix.fas.csv> <prefix> -> <prefix.hmnfas.csv>
 tassel_filter_hapmap.R --args <prefix.hmnfas.csv> <sample.name.csv> <prefix> -> <prefix.filtered.csv> + graphics
 tassel_create_tree.R --args <prefix.filtered.csv> <prefix> -> <prefix.phylogroups.csv> + tree graphics
-tassel_create_gps_table.R --args <prefix.filtered.csv> <prefix.phylogroups.csv> <prefix> -> <prefix.gps.csv>
+tassel_create_gps_table.R --args <prefix.filtered.csv> <prefix.phylogroups.csv> <prefix.names.csv> <prefix> -> <prefix.gps.csv>
 
 crosscheck_samples.R --args <prefix.filtered.csv> <prefix>
