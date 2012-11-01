@@ -27,6 +27,10 @@ names.matrix <- as.matrix(read.csv(args[3]))
 # Creates a data.frame of each sample
 # Points are coloured based on cutree phylogenetic groups
 # Only samples which passed filtering are used
+#ERROR HERE SOMEWHERE:
+#Error in data.frame(Names = names(genotype), color = plot.col, Lat = names.matrix[8,  : 
+# arguments imply differing number of rows: 79, 80
+# Execution halted
 gps.file <- data.frame(
   Names=names(genotype),
   color=plot.col,
