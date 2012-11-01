@@ -1,7 +1,9 @@
+library(phangorn)
+
 #change working directory
 args <- commandArgs(trailingOnly=T)
-# args[1] = "pel2b_crosscheck.filtered.csv"
-# args[2] = "pel2b_crosscheck"
+# args[1] = "pel2b.filtered.csv"
+# args[2] = "pel2b"
 
 ### READ DATA
 # Read genotype data created tassel_filter_hapmap.R
@@ -21,13 +23,13 @@ write.csv(tree.groups, file=paste(args[2], "phylogroups.csv", sep="."))
 plot.col <- rainbow(max(as.numeric(tree.groups)))[as.numeric(tree.groups)]
 
 
-### EXPORT FIGURES
+### MAKE TREE FIGURE
 pdf(file=paste(args[2], "tree.pdf", sep="."))
 # Plot tree, including coloured boxes around different phylogenetic groups
 plot(
   tree, 
   cex = 0.7, #cex scales text by 0.5
-  sub=paste("sample_cutoff=", sample.cutoff, "snp_cutoff=", snp.cutoff),
+  #sub=paste("sample_cutoff=", sample.cutoff, "snp_cutoff=", snp.cutoff),
   xlab=""
 )
 rect.hclust(
@@ -36,4 +38,31 @@ rect.hclust(
   border=rainbow(max(as.numeric(tree.groups))), 
   cluster=tree.groups
 )
+
+### MAKE BOOTSTRAPPED TREE
+
+#make distance matrix and inital tree with upgma
+snp.cor.dist <- as.dist(1 - cor(genotype,use = "pairwise.complete.obs"))
+initial.tree <- upgma(snp.cor.dist)
+
+## Calculate boostrapped tree
+bs <- list()
+for (i in 1:100){
+  # resample data
+  bs.data <- sample(nrow(genotype),replace=T)
+  # get dist matrix of resampled data
+  snp.cor.bs <- as.dist(1-cor(genotype[bs.data,],use = "pairwise.complete.obs"))
+  # store tree of resampled data
+  bs[[i]] <- upgma(snp.cor.bs)
+  
+  print(i)
+}
+
+## Make bootstrapped tree
+bs.tree <- plotBS(initial.tree, bs)
+
+## Print Bootstrapped tree
+pdf(file=paste(args[2], "treeBS.pdf", sep="."))
+plot(initial.tree, cex=0.5)
+nodelabels(bs.tree$node.label,frame="none", cex=0.5)
 dev.off()
