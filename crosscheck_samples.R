@@ -3,8 +3,11 @@ args <- commandArgs(trailingOnly=T)
 pel2b <- read.csv("pel2b.filtered.csv")
 pel3 <- read.csv("pel3.filtered.csv")
 pel2bn3 <- read.csv("pel2bn3.filtered.csv")
+key <- read.csv("../key.pel2bn3.csv")
+pel2b.key <- key[key$PlateName == "Pel2b",]
+pel3.key <- key[key$PlateName == "Pel3",]
+techrep.samples <- match(as.character(pel2b.key$Sample), as.character(pel3.key$Sample))
 
-techrep.rows <- c()
 match(names(pel2b), names(pel3))
 table(!is.na(match(pel2b$tagseqs, pel3$tagseqs)))
 table(!is.na(match(pel2bn3$tagseqs, pel2b$tagseqs)))
