@@ -1,9 +1,9 @@
 #change working directory
 args <- commandArgs(trailingOnly=T)
-# args[1] = "pel2b_crosscheck.filtered.csv"
-# args[2] = "pel2b_crosscheck.phylogroups.csv"
-# args[3] = "pel2b_crosscheck.names.csv"
-# args[4] = "pel2b_crosscheck"
+# args[1] = "pel2b.filtered.csv"
+# args[2] = "pel2b.phylogroups.csv"
+# args[3] = "pel2b.names.csv"
+# args[4] = "pel2b"
 
 
 # Read genotype data created tassel_filter_hapmap.R
@@ -21,17 +21,13 @@ names(tree.groups) <- as.character(tree.groups.tab[,1])
 plot.col <- rainbow(max(as.numeric(tree.groups)))[as.numeric(tree.groups)]
 
 ### Get names data
-names.matrix <- as.matrix(read.csv(args[3]))
+# first column X with rownames is removed
+names.matrix <- as.matrix(read.csv(args[3])[,-(1)]) 
 
 ### Export data to gps file
 # Creates a data.frame of each sample
 # Points are coloured based on cutree phylogenetic groups
-# Only samples which passed filtering are used
-#ERROR HERE SOMEWHERE:
-#Error in data.frame(Names = names(genotype), color = plot.col, Lat = names.matrix[8,  : 
-# arguments imply differing number of rows: 79, 80
-# Execution halted
-gps.file <- data.frame(
+# Only samples which passed filtering are usedgps.file <- data.frame(
   Names=names(genotype),
   color=plot.col,
   Lat=names.matrix[8,],
