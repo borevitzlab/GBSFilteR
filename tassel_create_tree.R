@@ -42,8 +42,10 @@ rect.hclust(
 ### MAKE BOOTSTRAPPED TREE
 
 #make distance matrix and inital tree with upgma
-snp.cor.dist <- as.dist(1 - cor(genotype,use = "pairwise.complete.obs"))
-initial.tree <- upgma(snp.cor.dist)
+
+#snp.cor.dist <- as.dist(1 - cor(genotype,use = "pairwise.complete.obs"))
+snp.euc.dist <- dist(t(genotype)) # problems with missing data
+initial.tree <- upgma(snp.euc.dist)
 
 ## Calculate boostrapped tree
 bs <- list()
@@ -51,7 +53,8 @@ for (i in 1:100){
   # resample data
   bs.data <- sample(nrow(genotype),replace=T)
   # get dist matrix of resampled data
-  snp.cor.bs <- as.dist(1-cor(genotype[bs.data,],use = "pairwise.complete.obs"))
+#  snp.cor.bs <- as.dist(1-cor(genotype[bs.data,],use = "pairwise.complete.obs"))
+  snp.cor.bs <- dist(t(genotype[bs.data,],use = "pairwise.complete.obs"))
   # store tree of resampled data
   bs[[i]] <- upgma(snp.cor.bs)
   
