@@ -1,0 +1,75 @@
+# script to read in GBS counts file and perform binary distance 
+
+fileLoc <- "Downloads" # "http://gduserv.anu.edu.au/~borevitz/tassel/FOLDERNAME/HapMap/"
+fileName <- "HapMap.crespedia.hmc.txt"
+fileName <- "HapMap.emarginata.hmc.txt"
+fileName <- "HapMap.frog.hmc.txt"
+
+hmc <- read.table(paste(fileLoc,fileName,sep="/"),header=T)
+#hmc <- read.table("HapMap.hmc.txt",header=T)
+#exclude standard header columns
+std.head <- c("rs","HetCount_allele1","HetCount_allele2","Count_allele1","Count_allele2","Frequency")
+
+#setup matrix of sample rows 1x with allele pairs 2x
+hmc.allele <- apply(hmc[,!colnames(hmc)%in%std.head],1,function (x) unlist(strsplit(x,split="|",fixed=T)))
+sampN <- nrow(hmc.allele)/2
+snpN <- ncol(hmc.allele)
+#names.list <- list(colnames(hmc[,!colnames(hmc)%in%std.head]),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
+short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=6)[1,]
+names.list <- list(short.names,paste(rep(hmc$rs,each=2),1:2,sep="_")  )
+
+#split genotypes into allele groups 2x samples 1x snps
+hmc.allele2 <- matrix(ncol=2*snpN,nrow=sampN,dimnames = names.list)
+# fill allele pairs
+hmc.allele2[,seq(1,snpN*2,2)] <- as.numeric(hmc.allele[seq(1,sampN*2,2),])
+hmc.allele2[,seq(2,snpN*2,2)] <- as.numeric(hmc.allele[seq(2,sampN*2,2),])
+#call Presence/Absense
+hmc.allele01 <- hmc.allele2
+hmc.allele01[hmc.allele2 != 0] <- 1
+
+# look at coverage across samples
+reads.samp <- rowSums(hmc.allele2)
+alleles.samp <- rowSums(hmc.allele01)
+# VISUALLY INSPECT BAD SAMPLES
+plot(alleles.samp,reads.samp,xlab = "Alleles Called per Sample", ylab = "Total Reads per Sample")
+s.cuts <- 2000 #need to edit this for each experiment
+abline(v=s.cuts)
+keep <- alleles.samp>s.cuts
+table(keep)
+hmc01 <- hmc.allele01[keep,]
+
+# look at read coverage
+reads.allele <- colSums(hmc.allele2[keep,])
+samps.allele <- colSums(hmc01)
+plot(samps.allele, reads.allele,xlab = "Samples with Allele Called", ylab = "Total Reads per Allele",
+     pch=".",ylim=c(0,10000))
+quantile(reads.allele,1:20/20)
+quantile(samps.allele,1:20/20)
+freq.allele <- samps.allele/sum(keep)
+# remove rare and repeat alleles
+s.cuts <- c(-0.1,0.05,0.95,1.1) # must be observed in 5% of samples but not more that 95%
+s.cuts <- c(-0.1,0.1,0.9,1.1) # must be observed in 10% of samples but not more that 90%
+
+abline(v=s.cuts*sum(keep))
+keep.allele <- cut(freq.allele,s.cuts,labels = c("rare","mid","repeat"))
+table(keep.allele)
+table(is.na(keep.allele) ) #verify nothing missing because exactly on threshold
+hmc01 <- hmc01[,keep.allele=="mid"]  # strange bug, check diminsions
+dim(hmc01)
+
+#finally relatedness
+# understand 'binary' distance which disregards shared absence
+test <- rbind(c(0,0,1,1,1,1,1,1,1,1),
+              c(0,0,0,1,1,1,1,1,1,1),
+              c(1,1,1,0,0,0,0,0,0,0),
+              c(1,1,0,0,0,0,0,0,0,0))
+as.matrix(dist(test,method="manhattan"))
+as.matrix(dist(test,method="binary"))
+plot(hclust(dist(test,method="binary")))
+#and read data
+
+dist01 <- dist(hmc01,method="binary")
+
+pdf(file = "Cleome21kdomBinDist.pdf",paper="a4r")
+plot(hclust(dist01))
+dev.off()
