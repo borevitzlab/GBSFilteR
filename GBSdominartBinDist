@@ -73,3 +73,36 @@ dist01 <- dist(hmc01,method="binary")
 pdf(file = "Cleome21kdomBinDist.pdf",paper="a4r")
 plot(hclust(dist01))
 dev.off()
+
+#coloring of trees from Aaron Chuah
+
+colors <- as.numeric(factor(metadata$Site[match(ind.names,metadata$Tube.label)]))
+
+pl.out <- plot(hclust(as.dist(dist01)),cex=0.5)
+
+library(RColorBrewer)
+category.vals<<-as.character(levels(as.factor(categories)))
+color.pal<<-c('black',brewer.pal(length(category.vals),"Paired"))
+
+colLab <- function(n) { #helper function to color dendrogram labels
+  if (is.leaf(n)) {
+    a <- attributes(n)
+    labCol<-color.pal[1]
+    for(i in 1:length(category.vals)) {
+      family<-matrix(unlist(strsplit(a$label,split="-")),nrow=2)[2]
+      if(!is.na(pmatch(category.vals[i],family))) {
+        labCol<-color.pal[i+1]
+      }
+    }
+    attr(n, "nodePar") <- c(a$nodePar, lab.col=labCol, pch=NA)
+  }
+  n
+}
+
+
+hc <- hclust(as.dist(dist01))
+hc <- dendrapply(as.dendrogram(hc,hang=0.1),colLab)
+par(cex=0.3)
+plot(hc)
+
+
