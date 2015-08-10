@@ -86,10 +86,16 @@ plot(hclust(dist(test,method="binary")))
 #and read data
 
 dist01 <- dist(hmc01,method="binary")
+pc <- cmdscale(dist01k=20)
+var.comp <- apply(pc,2,var)
+var.comp <- round(var.comp/sum(var.comp)*100)
 
 hc <- hclust(dist01)
 pdf(file="Tricia7pDendrogramOdd.pdf",paper="a4r")
 plot(hc,cex=0.1)
+plot(pc,xlab = paste("pc1",var.comp[1],"%"),ylab=paste("pc2",var.comp[2],"%"))
+image(1:length(hc$ord),1:length(hc$ord),as.matrix(dist01)[hc$order,hc$order],zlim=c(0.6,1))
+#axis(side=2,1:837,labels=hc$labels[hc$order],hadj=T,cex=0.2) #not quite right
 dev.off()
 abline(h=.9)
 
