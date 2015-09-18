@@ -1,6 +1,7 @@
-# Tricia's 7p by Justin on Aug 8,2015
+# Tricia's 7p by Justin on Sep 10,2015
 fileLoc <- "Downloads" # "http://gduserv.anu.edu.au/~borevitz/tassel/FOLDERNAME/HapMap/"
-fileName <- "Tricia7p.hmc.txt"
+fileName <- "rerunfinalAug2015.hmc.txt"
+fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/ybmatseed.HapMap.hmc.txt"
 setwd(fileLoc)
 #hmc <- read.table(paste(fileLoc,fileName,sep="/"),header=T)
 hmc <- read.table(fileName,header=T)
@@ -14,14 +15,9 @@ std.head <- c("rs","HetCount_allele1","HetCount_allele2","Count_allele1","Count_
 hmc.allele <- apply(hmc[,!colnames(hmc)%in%std.head],1,function (x) unlist(strsplit(x,split="|",fixed=T)))
 sampN <- nrow(hmc.allele)/2
 snpN <- ncol(hmc.allele)
-names.list <- list(colnames(hmc[,!colnames(hmc)%in%std.head]),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
-#short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=5)#[1,]
 
-lapply(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_"),length)
-
-#plate <- short.names[3,]
-#short.names <- paste(short.names[1,],short.names[3,],sep="_")
-#names.list <- list(short.names,paste(rep(hmc$rs,each=2),1:2,sep="_")  )
+short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=6)
+names.list <- list(short.names[1,],paste(rep(hmc$rs,each=2),1:2,sep="_")  )
 
 #split genotypes into allele groups 2x samples 1x snps
 hmc.allele2 <- matrix(ncol=2*snpN,nrow=sampN,dimnames = names.list)
@@ -34,13 +30,14 @@ save(hmc.allele2,file="Tricia7p.hmc.allele2.RData",compress=T)
 hmc.allele01 <- hmc.allele2
 hmc.allele01[hmc.allele2 != 0] <- 1
 
+
 # look at coverage across samples
 reads.samp <- rowSums(hmc.allele2)
 alleles.samp <- rowSums(hmc.allele01)
 # VISUALLY INSPECT BAD SAMPLES
 pdf("Tricia7pReadsAllelesSamp.pdf")
 plot(alleles.samp,reads.samp,xlab = "Alleles Called per Sample", ylab = "Total Reads per Sample",main = "Reads vs Alleles per Sample")
-s.cuts <- 1500 #need to edit this for each experiment
+s.cuts <- 2000 #need to edit this for each experiment
 abline(v=s.cuts)
 abline(a=0,b=5,col="red")
 abline(a=0,b=10,col="green")
@@ -63,6 +60,20 @@ abline(a=0,b=40,col="blue")
 quantile(reads.allele,1:20/20)
 quantile(samps.allele,1:20/20)
 freq.allele <- samps.allele/sum(keep)
+
+## need to filter alleles that are present in all lanes!!!
+lanes <- metadata$lane[idZ][keep]
+lane.count <- matrix(ncol = ncol(hmc01),nr=length(table(lanes)))
+for (i in 1:ncol(hmc01)){
+lane.count[,i] <- tapply(hmc01[,i],lanes,sum)
+} # takes a while 1min
+
+allele.lane <- colSums(matrix(as.logical(lane.count),nr=3))
+table(allele.lane)
+
+plot(density(samps.allele ))
+lines(density(samps.allele [common.allele]),col="green")
+common.allele <- allele.lane == 3
 # remove rare and repeat alleles
 s.cuts <- c(-0.1,0.05,0.95,1.1) # must be observed in 5% of samples but not more that 95%
 s.cuts <- c(-0.1,0.1,0.9,1.1) # must be observed in 10% of samples but not more that 90%
@@ -71,7 +82,15 @@ abline(v=s.cuts*sum(keep))
 keep.allele <- cut(freq.allele,s.cuts,labels = c("rare","mid","repeat"))
 table(keep.allele)
 table(is.na(keep.allele) ) #verify nothing missing because exactly on threshold
-hmc01 <- hmc01[,keep.allele=="mid"]  # strange bug, check diminsions
+table(keep.allele,common.allele)
+
+#common.allele
+#keep.allele  FALSE   TRUE
+#rare   153486  11720
+#mid     10301   7428
+#repeat      0    273
+hmc01 <- hmc01[,keep.allele=="mid" & common.allele]  # strange bug, check diminsions
+#hmc01 <- hmc01[,common.allele]  # strange bug, check diminsions
 dim(hmc01)
 
 #finally relatedness
@@ -83,22 +102,60 @@ test <- rbind(c(0,0,1,1,1,1,1,1,1,1),
 as.matrix(dist(test,method="manhattan"))
 as.matrix(dist(test,method="binary"))
 plot(hclust(dist(test,method="binary")))
-#and read data
 
+# more examples of multiple regression of distance matrices
+mat <- rep(LETTERS[1:10], each = 3)
+pop <- rep(letters[1:3],each = 10)
+kin.mat <- outer(mat,mat, FUN = "==")
+pop.mat <- outer(pop,pop, FUN = "==")
+# noise + family and pop
+gen.mat <- rnorm(30^2) + kin.mat + pop.mat
+
+library(ecodist)
+mantel(as.dist(gen.mat) ~ as.dist(kin.mat) + as.dist(pop.mat))
+mantel(as.dist(gen.mat) ~ as.dist(pop.mat) )
+mantel(as.dist(gen.mat) ~ as.dist(kin.mat) )
+
+MRM(as.dist(gen.mat) ~ as.dist(kin.mat) + as.dist(pop.mat))
+MRM(as.dist(gen.mat) ~ as.dist(pop.mat) )
+MRM(as.dist(gen.mat) ~ as.dist(kin.mat) )
+
+# principal components first runs the distance matrix, we will do seperately
+prcomp.euc <- prcomp(hmc01)
+
+# back to the real data
 dist01 <- dist(hmc01,method="binary")
-pc <- cmdscale(dist01k=20)
+hc <- hclust(dist01)
+hist(dist01,breaks=100) # notics 2 peaks for within and between family
+
+image(as.matrix(dist01)[hc$ord,hc$ord])
+
+
+pc <- cmdscale(dist01,k=30)
 var.comp <- apply(pc,2,var)
 var.comp <- round(var.comp/sum(var.comp)*100)
+colors <- as.numeric(factor(as.character(metadata$PlateName[idx])))
+colors <- as.numeric(factor(as.character(metadata$lane[idx])))
 
-hc <- hclust(dist01)
-pdf(file="Tricia7pDendrogramOdd.pdf",paper="a4r")
-plot(hc,cex=0.1)
-plot(pc,xlab = paste("pc1",var.comp[1],"%"),ylab=paste("pc2",var.comp[2],"%"))
+plot(pc,xlab = paste("pc1",var.comp[1],"%"),ylab=paste("pc2",var.comp[2],"%"),col = colors)
+
+sampname[order(pc[,1])]
+pop[order(pc[,1])]
+
+pdf(file="Tricia683Dendrogram7k.pdf",width=420/25,height=297/25)
+plot(hc,cex=0.2,labels = sampname,color = levels(pop))
+dev.off()
+
 image(1:length(hc$ord),1:length(hc$ord),as.matrix(dist01)[hc$order,hc$order],zlim=c(0.6,1))
-#axis(side=2,1:837,labels=hc$labels[hc$order],hadj=T,cex=0.2) #not quite right
+axis(side=1,labels=sampname[hc$order],padj=T,at = 1:length(sampname),cex=0.1)
+
+image(1:length(hc$ord),1:length(hc$ord),as.matrix(dist01)[order(sampname),order(sampname)],zlim=c(0.6,1))
+mtext(sampname,side=1, padj = 1,cex=0.1)
 dev.off()
 abline(h=.9)
 
+temp <- colSums(as.matrix(dist01))
+plot(reads.samp[keep],temp)
 # cut out odd species as listed below.
 cat.tree <- cutree(hc,h=.95)
 table(cat.tree)
@@ -108,54 +165,79 @@ dim(hmc01)
 
 dist01 <- dist(hmc01,method="binary")
 hc <- hclust(dist01)
-pdf(file="Tricia7pDendrogram.pdf",paper="a4r")
+pdf(file="Tricia7pDendrogram.pdf",)
 plot(hc,cex=0.1)
 dev.off()
 
+metadata <- read.csv("https://github.com/LaMariposa/eucalyptus_data/blob/master/Emelliodora_PlantsSamples.csv")
+metadata <- read.csv("Emelliodora_PlantsSamples.csv")
+
+metadata$lane <- "lane"
+metadata$lane[metadata$PlateName %in% c("Emel003A","Emel003B")] <- "lane1"
+metadata$lane[metadata$PlateName %in% ""] <- "laneX"
+metadata$lane[metadata$PlateName %in% paste("Emelliodora_LB_Block",c("09","10","11","12","13"),sep="")] <- "lane2"
+metadata$lane[metadata$PlateName %in% paste("Emelliodora_Plate",c(5,6,9,10),"_2015",sep="")] <- "lane3"
+metadata$lane[metadata$PlateName %in% paste("Emelliodora-LB-Block",1:4,sep="")] <- "lane4"
 
 
-which(cat.tree==3)
-which(cat.tree==2)
-(if i==0){
-> which(cat.tree==3)
-LBM_1_04_S45649_1_none_A01_X5  LBM_1_08_S45653_1_none_A01_X5 
-291                            292 
-LBM_1_12_S45657_1_none_A01_X5  LBM_2_03_S45670_1_none_A01_X5 
-293                            298 
-LBM_2_05_S45672_1_none_A01_X5  LBM_2_07_S45674_1_none_A01_X5 
-299                            301 
-LBM_5_11_S45679_1_none_A01_X5 LBM_5_13R_S45682_1_none_A01_X5 
-302                            304 
-LBM_5_15_S45684_1_none_A01_X5  LBM_3_07_S45695_1_none_A01_X5 
-306                            309 
-M.3_S45051_1_none_A01_X5 
-325 
-> which(cat.tree==2)
-KMCH_01_01_S45528_1_none_A01_X5 KMCH_01_02_S45536_1_none_A01_X5 
-69                              70 
-KMCH_01_03_S45544_1_none_A01_X5 KMCH_01_04_S45552_1_none_A01_X5 
-71                              72 
-KMCH_01_05_S45560_1_none_A01_X5              LBM_6_01_merged_X3 
-73                             285 
-LBM_5_06_S45460_1_none_A01_X5              LBM_6_02_merged_X3 
-286                             288 
-LBM_6_03_merged_X3   LBM_1_02_S45647_1_none_A01_X5 
-289                             290 
-LBM_2_01_S45668_1_none_A01_X5   LBM_2_06_S45673_1_none_A01_X5 
-296                             300 
-LBM_5_12_S45680_1_none_A01_X5   LBM_5_14_S45683_1_none_A01_X5 
-303                             305 
-LBM_5_17_S45686_1_none_A01_X5    LBM_3_1_S45689_1_none_A01_X5 
-307                             308 
-LBM_1_25_S45726_1_none_A01_X5   LBM_6_04_S45752_1_none_A01_X5 
-310                             311 
-LBM_6_05_S45753_1_none_A01_X5   LBM_6_06_S45754_1_none_A01_X5 
-312                             313 
-#coloring of trees from Aaron Chuah
-}
+#metadata <- read.csv("meta_MS_FP_alt_GPS.csv")
 
+metadata2 <- read.csv("melliodora_lbpops.csv")
+idy <- match(as.character(pop),metadata2$pop.name)
+long <- metadata2$Long[idy]
+lat <- metadata2$Lat[idy]
 
-colors <- as.numeric(factor(metadata$Site[match(ind.names,metadata$Tube.label)]))
+library(fossil)
+geo.dist <- earth.dist(cbind(long,lat))
+#make sure all sampleid's have metadata
+table(rownames(hmc01)%in%metadata$SampleID)
+
+idx <- match(rownames(hmc01),metadata$SampleID)
+idZ <- match(short.names[1,],metadata$SampleID)
+
+sort(as.character(metadata$SampleName[idZ]))
+
+temp <- strsplit(as.character(metadata$SampleName),split = "-")
+metadata$family <- unlist(lapply(temp,function (x) paste(x[1:2],collapse="-")))
+
+fam <- metadata$family[idx]
+pop <- metadata$PopulationName[idx]
+sampname <- metadata$SampleName[idx]
+
+match(as.character(pop),metadata2$pop.name)
+
+table(table(as.character(fam)))
+
+#pop <- sample(pop)
+pop.mat <- outer(pop,pop, FUN = "==")
+fam.mat <- outer(fam,fam, FUN = "==")
+
+MRM(as.dist(as.matrix(dist01)[keep,keep]) ~ as.dist(pop.mat[keep,keep])
+                       +as.dist(fam.mat[keep,keep]) 
+          +   log1p(as.dist(as.matrix(geo.dist)[keep,keep])) )
+
+# exclude pop == "LB-7"
+keep <- pop != "LB-7"
+fam.rep <- names(which (table(fam) > 1))
+keep <- fam %in% fam.rep
+MRM(as.dist(as.matrix(dist01)[keep,keep]) ~ 
+#     as.dist(pop.mat[keep,keep])
+#    as.dist(fam.mat[keep,keep]) 
+    log1p(as.dist(as.matrix(geo.dist)[keep,keep])) )
+
+plot( log1p(as.dist(as.matrix(geo.dist)[keep,keep])) , as.dist(as.matrix(dist01)[keep,keep]), main = "Genomic Isolation by Geographic Distance")
+
+plot(density(dist01),xlim = c(0,1),main = "Distribution of pairwise genetic distance")
+lines(density(dist01[as.dist(fam.mat)==1]),col="green")
+lines(density(dist01[as.dist(pop.mat)==1]),col="blue")
+legend(0,5,legend = c("all","family","population"),col = c("black","green","blue"), text.col = c("black","green","blue"),lty=1)
+
+## load bioclim
+library(raster)
+library(rgdal)
+xxx <- getData('worldclim',var='bio',res=2.5)
+
+colors <- as.numeric(factor(as.character(pop)))
 
 pl.out <- plot(hclust(as.dist(dist01)),cex=0.5)
 
@@ -180,6 +262,6 @@ colLab <- function(n) { #helper function to color dendrogram labels
 
 
 hc <- hclust(as.dist(dist01))
-hc <- dendrapply(as.dendrogram(hc,hang=0.1),colLab)
+hc <- dendrapply(as.dendrogram(hc),function (n) attr(n, "nodePar") <- c(a$nodePar, lab.col=colors[n], pch=NA))
 par(cex=0.3)
 plot(hc)
