@@ -1,8 +1,9 @@
 # Tricia's 7p by Justin on Sep 10,2015
 fileLoc <- "Downloads" # "http://gduserv.anu.edu.au/~borevitz/tassel/FOLDERNAME/HapMap/"
 fileName <- "rerunfinalAug2015.hmc.txt"
-fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/ybmatseed.HapMap.hmc.txt"
-setwd(fileLoc)
+fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/allmat.HapMap.hmc.txt"
+#fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/ybmatseed.HapMap.hmc.txt"
+#setwd(fileLoc)
 #hmc <- read.table(paste(fileLoc,fileName,sep="/"),header=T)
 hmc <- read.table(fileName,header=T)
 #hmc <- read.table("HapMap.hmc.txt",header=T)
