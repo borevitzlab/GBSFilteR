@@ -17,8 +17,8 @@ hmc.allele <- apply(hmc[,!colnames(hmc)%in%std.head],1,function (x) unlist(strsp
 sampN <- nrow(hmc.allele)/2
 snpN <- ncol(hmc.allele)
 
-short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=6)
-names.list <- list(short.names[1,],paste(rep(hmc$rs,each=2),1:2,sep="_")  )
+short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=7)
+names.list <- list(paste(short.names[1,],short.names[2,],sep="-"),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
 
 #split genotypes into allele groups 2x samples 1x snps
 hmc.allele2 <- matrix(ncol=2*snpN,nrow=sampN,dimnames = names.list)
