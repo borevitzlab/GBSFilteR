@@ -1,4 +1,4 @@
-# Tricia's 7p by Justin on Sep 10,2015
+# GBS for Biol3157 Oct 6, 2015
 fileLoc <- "Downloads" # "http://gduserv.anu.edu.au/~borevitz/tassel/FOLDERNAME/HapMap/"
 fileName <- "rerunfinalAug2015.hmc.txt"
 fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/allmat.HapMap.hmc.txt"
