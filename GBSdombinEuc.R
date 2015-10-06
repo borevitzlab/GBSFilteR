@@ -95,6 +95,27 @@ as.matrix(dist(test,method="manhattan"))
 as.matrix(dist(test,method="binary"))
 plot(hclust(dist(test,method="binary")))
 
+
+# back to the real data
+dist01 <- dist(hmc01,method="binary")
+hc <- hclust(dist01)
+hist(dist01,breaks=100) # notics 2 peaks for within and between family
+
+# view the distance matrix
+#pdf("output.pdf")
+image(1:sum(keep),1:sum(keep),as.matrix(dist01)[hc$order,hc$order],zlim = c(0.6,1),axes=F, xlab = "samples",ylab="samples")
+axis(1,1:304,hc$labels[hc$order],srt=45,xpd=T,cex.axis=0.3,las=2)
+axis(2,1:304,hc$labels[hc$order],srt=90,cex.axis=0.3,las=2)
+
+plot(hc,cex=0.2)
+#dev.off()
+
+# describe the clusting. Do all individuals cluster within populations? what populations are closer together?
+
+
+
+### extra
+
 # more examples of multiple regression of distance matrices
 mat <- rep(LETTERS[1:10], each = 3)
 pop <- rep(letters[1:3],each = 10)
@@ -114,17 +135,6 @@ MRM(as.dist(gen.mat) ~ as.dist(kin.mat) )
 
 # principal components first runs the distance matrix, we will do seperately
 prcomp.euc <- prcomp(hmc01)
-
-# back to the real data
-dist01 <- dist(hmc01,method="binary")
-hc <- hclust(dist01)
-hist(dist01,breaks=100) # notics 2 peaks for within and between family
-
-# view the distance matrix
-
-image(1:sum(keep),1:sum(keep),as.matrix(dist01)[hc$order,hc$order],zlim = c(0.6,1),axes=F, xlab = "samples",ylab="samples")
-axis(1,1:304,hc$labels[hc$order],srt=45,xpd=T,cex.axis=0.3,las=2)
-axis(2,1:304,hc$labels[hc$order],srt=90,cex.axis=0.3,las=2)
 
 pc <- cmdscale(dist01,k=30)
 var.comp <- apply(pc,2,var)
