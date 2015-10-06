@@ -72,11 +72,11 @@ freq.allele <- samps.allele/sum(keep)
 
 # remove rare and repeat alleles
 # adjust internal thresholds for rare and repeats
-s.cuts <- c(-0.1,0.05,0.95,1.1) # must be observed in 5% of samples but not more that 95%
-s.cuts <- c(-0.1,0.1,0.9,1.1) # must be observed in 10% of samples but not more that 90%
+a.cuts <- c(-0.1,0.02,0.95,1.1) # must be observed in 5% of samples but not more that 95%
+#a.cuts <- c(-0.1,0.1,0.9,1.1) # must be observed in 10% of samples but not more that 90%
 
-abline(v=s.cuts*sum(keep))
-keep.allele <- cut(freq.allele,s.cuts,labels = c("rare","mid","repeat"))
+abline(v=a.cuts*sum(keep))
+keep.allele <- cut(freq.allele,a.cuts,labels = c("rare","mid","repeat"))
 table(keep.allele)
 table(is.na(keep.allele) ) #verify nothing missing because exactly on threshold
 
