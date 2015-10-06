@@ -18,7 +18,8 @@ snpN*2
 short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=7)
 names.list <- list(paste(short.names[1,],short.names[2,],sep="-"),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
 # have a look, should be population - individual
-names.list[,1:5]
+names.list[[1]][1:5]
+
 #split genotypes into allele groups 2x samples 1x snps
 hmc.allele2 <- matrix(ncol=2*snpN,nrow=sampN,dimnames = names.list)
 # fill allele pairs
@@ -26,13 +27,9 @@ hmc.allele2[,seq(1,snpN*2,2)] <- as.numeric(hmc.allele[seq(1,sampN*2,2),])
 hmc.allele2[,seq(2,snpN*2,2)] <- as.numeric(hmc.allele[seq(2,sampN*2,2),])
 
 #call Presence/Absense
-jpeg("rawImage.jpg")
-image(1:sampN,1:(snpN*2),hmc.allele2[,1:1000])
-dev.off()
-
 hmc.allele01 <- hmc.allele2
 hmc.allele01[hmc.allele2 != 0] <- 1
-image(hmc.allele01[,1:1000])
+image(1:1000,1:sampN,t(hmc.allele01[,1:1000]), ylab = " samples", xlab = "alleles")
 
 # generate summary stats on samples and reads
 # look at coverage across samples
