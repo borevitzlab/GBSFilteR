@@ -1,22 +1,19 @@
 # GBS for Biol3157 Oct 6, 2015
-fileLoc <- "Downloads" # "http://gduserv.anu.edu.au/~borevitz/tassel/FOLDERNAME/HapMap/"
-fileName <- "rerunfinalAug2015.hmc.txt"
+# Eucalyptus data of maternal trees
 fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/allmat.HapMap.hmc.txt"
-#fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/ybmatseed.HapMap.hmc.txt"
-#setwd(fileLoc)
-#hmc <- read.table(paste(fileLoc,fileName,sep="/"),header=T)
+
 hmc <- read.table(fileName,header=T)
-#hmc <- read.table("HapMap.hmc.txt",header=T)
-# this is taking a while to load, it is big! 332Mb
+# this is taking a while to load, it is 78Mb over the net
 
 #exclude standard header columns
 std.head <- c("rs","HetCount_allele1","HetCount_allele2","Count_allele1","Count_allele2","Frequency")
 
-#setup matrix of sample rows 1x with allele pairs 2x
+#setup matrix of sample rows 1x with allele pairs 2x, exclude std.head rows split on "|"
 hmc.allele <- apply(hmc[,!colnames(hmc)%in%std.head],1,function (x) unlist(strsplit(x,split="|",fixed=T)))
 sampN <- nrow(hmc.allele)/2
 snpN <- ncol(hmc.allele)
 
+# split up names to extract meaningful data
 short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=7)
 names.list <- list(paste(short.names[1,],short.names[2,],sep="-"),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
 
@@ -25,7 +22,6 @@ hmc.allele2 <- matrix(ncol=2*snpN,nrow=sampN,dimnames = names.list)
 # fill allele pairs
 hmc.allele2[,seq(1,snpN*2,2)] <- as.numeric(hmc.allele[seq(1,sampN*2,2),])
 hmc.allele2[,seq(2,snpN*2,2)] <- as.numeric(hmc.allele[seq(2,sampN*2,2),])
-save(hmc.allele2,file="Tricia7p.hmc.allele2.RData",compress=T)
 
 #call Presence/Absense
 hmc.allele01 <- hmc.allele2
