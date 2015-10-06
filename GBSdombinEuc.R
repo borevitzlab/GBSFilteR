@@ -16,7 +16,8 @@ snpN <- ncol(hmc.allele)
 # split up names to extract meaningful data
 short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=7)
 names.list <- list(paste(short.names[1,],short.names[2,],sep="-"),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
-
+# have a look, should be population - individual
+names.list[,1:5]
 #split genotypes into allele groups 2x samples 1x snps
 hmc.allele2 <- matrix(ncol=2*snpN,nrow=sampN,dimnames = names.list)
 # fill allele pairs
@@ -24,24 +25,36 @@ hmc.allele2[,seq(1,snpN*2,2)] <- as.numeric(hmc.allele[seq(1,sampN*2,2),])
 hmc.allele2[,seq(2,snpN*2,2)] <- as.numeric(hmc.allele[seq(2,sampN*2,2),])
 
 #call Presence/Absense
+jpeg("rawImage.jpg")
+image(hmc.allele2)
+dev.off()
+
 hmc.allele01 <- hmc.allele2
 hmc.allele01[hmc.allele2 != 0] <- 1
 
-
+# generate summary stats on samples and reads
 # look at coverage across samples
 reads.samp <- rowSums(hmc.allele2)
 alleles.samp <- rowSums(hmc.allele01)
 # VISUALLY INSPECT BAD SAMPLES
-pdf("Tricia7pReadsAllelesSamp.pdf")
-plot(alleles.samp,reads.samp,xlab = "Alleles Called per Sample", ylab = "Total Reads per Sample",main = "Reads vs Alleles per Sample")
+
+#pdf("output.pdf") # is you want to save in a .pdf
+plot(alleles.samp,reads.samp,xlab = "Alleles Called per Sample", ylab = "Total Reads per Sample",
+    main = "Reads vs Alleles per Sample")
+abline(a=0,b=5,col="red") # low coverage of 5 reads mean per locus per individual
+abline(a=0,b=10,col="green")
+abline(a=0,b=20,col="blue") # high coverage
+
+# select a vertical threshold to cut bad samples
 s.cuts <- 2000 #need to edit this for each experiment
 abline(v=s.cuts)
-abline(a=0,b=5,col="red")
-abline(a=0,b=10,col="green")
-abline(a=0,b=20,col="blue")
-dev.off()
+# dev.off() # close the .pdf
+
+# how many samples pass your QC??
 keep <- alleles.samp>s.cuts
 table(keep)
+
+# apply your QC threshold
 hmc01 <- hmc.allele01[keep,]
 
 # look at read coverage
@@ -54,8 +67,7 @@ abline(a=0,b=3,col="red")
 abline(a=0,b=10,col="green")
 abline(a=0,b=40,col="blue")
 
-quantile(reads.allele,1:20/20)
-quantile(samps.allele,1:20/20)
+barplot(quantile(samps.allele,1:20/20), main = "how many alleles are in how many samples")
 freq.allele <- samps.allele/sum(keep)
 
 ## need to filter alleles that are present in all lanes!!!
