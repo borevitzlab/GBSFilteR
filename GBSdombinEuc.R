@@ -56,6 +56,8 @@ table(keep)
 # apply your QC threshold
 hmc01 <- hmc.allele01[keep,]
 
+image(1:500,1:nrow(hmc01),t(hmc01[,1:500]), ylab = " samples", xlab = "alleles",col = c("white","black"))
+
 # look at read coverage
 # CONSIDER PLATE EFFECT ON ALLELE COUNTS
 reads.allele <- colSums(hmc.allele2[keep,])
@@ -66,23 +68,10 @@ abline(a=0,b=3,col="red")
 abline(a=0,b=10,col="green")
 abline(a=0,b=40,col="blue")
 
-barplot(quantile(samps.allele,1:20/20), main = "how many alleles are in how many samples")
 freq.allele <- samps.allele/sum(keep)
 
-## need to filter alleles that are present in all lanes!!!
-lanes <- metadata$lane[idZ][keep]
-lane.count <- matrix(ncol = ncol(hmc01),nr=length(table(lanes)))
-for (i in 1:ncol(hmc01)){
-lane.count[,i] <- tapply(hmc01[,i],lanes,sum)
-} # takes a while 1min
-
-allele.lane <- colSums(matrix(as.logical(lane.count),nr=3))
-table(allele.lane)
-
-plot(density(samps.allele ))
-lines(density(samps.allele [common.allele]),col="green")
-common.allele <- allele.lane == 3
 # remove rare and repeat alleles
+# adjust internal thresholds for rare and repeats
 s.cuts <- c(-0.1,0.05,0.95,1.1) # must be observed in 5% of samples but not more that 95%
 s.cuts <- c(-0.1,0.1,0.9,1.1) # must be observed in 10% of samples but not more that 90%
 
@@ -90,16 +79,11 @@ abline(v=s.cuts*sum(keep))
 keep.allele <- cut(freq.allele,s.cuts,labels = c("rare","mid","repeat"))
 table(keep.allele)
 table(is.na(keep.allele) ) #verify nothing missing because exactly on threshold
-table(keep.allele,common.allele)
 
-#common.allele
-#keep.allele  FALSE   TRUE
-#rare   153486  11720
-#mid     10301   7428
-#repeat      0    273
-hmc01 <- hmc01[,keep.allele=="mid" & common.allele]  # strange bug, check diminsions
-#hmc01 <- hmc01[,common.allele]  # strange bug, check diminsions
+# apply threshold
+hmc01 <- hmc01[,keep.allele=="mid"]
 dim(hmc01)
+image(1:1000,1:nrow(hmc01),t(hmc01[,1:1000]), ylab = " samples", xlab = "alleles")
 
 #finally relatedness
 # understand 'binary' distance which disregards shared absence
