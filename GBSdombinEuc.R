@@ -11,8 +11,9 @@ std.head <- c("rs","HetCount_allele1","HetCount_allele2","Count_allele1","Count_
 #setup matrix of sample rows 1x with allele pairs 2x, exclude std.head rows split on "|"
 hmc.allele <- apply(hmc[,!colnames(hmc)%in%std.head],1,function (x) unlist(strsplit(x,split="|",fixed=T)))
 sampN <- nrow(hmc.allele)/2
+sampN
 snpN <- ncol(hmc.allele)
-
+snpN*2
 # split up names to extract meaningful data
 short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=7)
 names.list <- list(paste(short.names[1,],short.names[2,],sep="-"),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
@@ -26,11 +27,12 @@ hmc.allele2[,seq(2,snpN*2,2)] <- as.numeric(hmc.allele[seq(2,sampN*2,2),])
 
 #call Presence/Absense
 jpeg("rawImage.jpg")
-image(hmc.allele2)
+image(1:sampN,1:(snpN*2),hmc.allele2[,1:1000])
 dev.off()
 
 hmc.allele01 <- hmc.allele2
 hmc.allele01[hmc.allele2 != 0] <- 1
+image(hmc.allele01[,1:1000])
 
 # generate summary stats on samples and reads
 # look at coverage across samples
