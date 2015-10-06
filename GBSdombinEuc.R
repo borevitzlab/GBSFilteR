@@ -120,8 +120,11 @@ dist01 <- dist(hmc01,method="binary")
 hc <- hclust(dist01)
 hist(dist01,breaks=100) # notics 2 peaks for within and between family
 
-image(as.matrix(dist01)[hc$ord,hc$ord])
+# view the distance matrix
 
+image(1:sum(keep),1:sum(keep),as.matrix(dist01)[hc$order,hc$order],zlim = c(0.6,1),axes=F, xlab = "samples",ylab="samples")
+axis(1,1:304,hc$labels[hc$order],srt=45,xpd=T,cex.axis=0.3,las=2)
+axis(2,1:304,hc$labels[hc$order],srt=90,cex.axis=0.3,las=2)
 
 pc <- cmdscale(dist01,k=30)
 var.comp <- apply(pc,2,var)
