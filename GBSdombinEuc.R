@@ -1,6 +1,8 @@
 # GBS for Biol3157 Oct 6, 2015
 # Eucalyptus data of maternal trees
 fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/allmat.HapMap.hmc.txt"
+# extra data set
+#fileName <- "http://gduserv.anu.edu.au/~msupple/tricia/final/ybmatseed.HapMap.hmc.txt"
 
 hmc <- read.table(fileName,header=T)
 # this is taking a while to load, it is 78Mb over the net
