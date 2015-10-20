@@ -116,7 +116,7 @@ plot(hc,cex=0.2)
 
 
 
-### extra
+### extra part, not assessed YOU DON'T HAVE TO DO ALL THIS
 
 # more examples of multiple regression of distance matrices
 mat <- rep(LETTERS[1:10], each = 3)
