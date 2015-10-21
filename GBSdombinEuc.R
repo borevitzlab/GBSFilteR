@@ -19,6 +19,9 @@ snpN*2
 # split up names to extract meaningful data
 short.names <- matrix(unlist(strsplit(colnames(hmc[,!colnames(hmc)%in%std.head]),split="_")),nr=7)
 names.list <- list(paste(short.names[1,],short.names[2,],sep="-"),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
+# if your names are not clean use this line
+#names.list <- list(colnames(hmc[,!colnames(hmc)%in%std.head]),paste(rep(hmc$rs,each=2),1:2,sep="_")  )
+
 # have a look, should be population - individual
 names.list[[1]][1:5]
 
