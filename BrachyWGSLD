@@ -1,6 +1,6 @@
 library(VariantAnnotation)
 setwd("Downloads/")
-bd <- readGT("freebayes_strict.vcf.gz") #takes a few min to readin
+bd <- readGT("https://edmund.anu.edu.au/~kevin/freebayes_strict.vcf.gz") #takes a few min to readin
 
 snp.names <- rownames(bd)
 snp.mat <- matrix(unlist(strsplit(snp.names,split = ":")),nrow=2)
