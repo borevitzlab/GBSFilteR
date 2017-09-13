@@ -356,7 +356,8 @@ for(f in c("graphs","images","output")){
 # data file; one at a time
 #
 fn<- commandArgs(trailingOnly = TRUE)[1]
-#e.g. "~/Borevitz/BVZ0039/results/tc-pipeline/BVZ0039-GC03L-C01~fullres-csv/BVZ0039-GC03L-C01~fullres-area.csv"
+#
+# this file is https://raw.githubusercontent.com/borevitzlab/GBSFilteR/master/BVZ0039-GC03L-C01~fullres-area.csv
 #
 pheno<- strsplit(fn, "\\.")[[1]][1] # best to specify the file name with data information
    pheno<- strsplit(pheno, "\\/")[[1]]
